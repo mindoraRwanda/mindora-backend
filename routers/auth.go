@@ -2,28 +2,56 @@ package routers
 
 import (
     "net/http"
+    "time"
 
     "github.com/gin-gonic/gin"
     "github.com/jackc/pgx/v4"
     "golang.org/x/crypto/bcrypt"
-    "your_module/models"
+    "github.com/dgrijalva/jwt-go"
+    "github.com/mindoraRwanda/mindora-backend.git/models"
 )
 
+var jwtSecret = []byte("your_secret_key")
+
 func SetupAuthRoutes(r *gin.Engine, conn *pgx.Conn) {
-    r.POST("/api/auth/register", registerHandler(conn))
-    r.POST("/api/auth/login", loginHandler(conn))
+    r.POST("/register", registerHandler(conn))
+    r.POST("/login", loginHandler(conn))
 }
 
 func registerHandler(conn *pgx.Conn) gin.HandlerFunc {
     return func(c *gin.Context) {
-        var user User
+        var user models.User
+        if err := c.ShouldBindJSON(&user); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
+
+        hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
+            return
+        }
+
+        _, err = conn.Exec(c, "INSERT INTO users (username, password) VALUES ($1, $2)", user.Username, hashedPassword)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating user"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
+    }
+}
+
+func loginHandler(conn *pgx.Conn) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var user models.User
         if err := c.ShouldBindJSON(&user); err != nil {
             c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
             return
         }
 
         var storedPassword string
-        err := conn.QueryRow(context.Background(), "SELECT password FROM users WHERE username=$1", user.Username).Scan(&storedPassword)
+        err := conn.QueryRow(c, "SELECT password FROM users WHERE username=$1", user.Username).Scan(&storedPassword)
         if err != nil {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
             return
@@ -47,11 +75,5 @@ func registerHandler(conn *pgx.Conn) gin.HandlerFunc {
         }
 
         c.JSON(http.StatusOK, gin.H{"token": tokenString})
-    }
-}
-
-func loginHandler(conn *pgx.Conn) gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // Implementation of login handler
     }
 }
