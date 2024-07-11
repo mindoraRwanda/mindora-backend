@@ -3,6 +3,7 @@ package db
 import (
     "context"
     "os"
+	"fmt"
 
     "github.com/jackc/pgx/v4"
 )
