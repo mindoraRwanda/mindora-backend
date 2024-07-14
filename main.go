@@ -34,7 +34,7 @@ func main() {
     routers.SetupPatientRoutes(r, conn)
 
     r.GET("/", func(c *gin.Context) {
-        c.String(200, "Welcome to my API!")
+        c.String(200, "Welcome to mindora API!")
     })        
 
     r.Run()
