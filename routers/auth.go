@@ -11,7 +11,7 @@ import (
     "github.com/mindoraRwanda/mindora-backend.git/models"
 )
 
-var jwtSecret = []byte("your_secret_key")
+var jwtSecret = []byte("10aaa8d1bf2c5cd2aa059602819828911a65ed4b22d352b6f1d1dffa72de7751")
 
 func SetupAuthRoutes(r *gin.Engine, conn *pgx.Conn) {
     r.POST("/register", registerHandler(conn))
