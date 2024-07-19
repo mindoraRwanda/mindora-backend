@@ -32,6 +32,7 @@ func main() {
     routers.SetupAdminRoutes(r, conn)
     routers.SetupTherapistRoutes(r, conn)
     routers.SetupPatientRoutes(r, conn)
+    routers.SetupAppointmentRoutes(r, conn)
 
     r.GET("/", func(c *gin.Context) {
         c.String(200, "Welcome to mindora API!")
