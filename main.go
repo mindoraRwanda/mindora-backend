@@ -37,5 +37,6 @@ func main() {
         c.String(200, "Welcome to mindora API!")
     })        
 
-    r.Run()
+   r.Run(":8080")
+
 }
